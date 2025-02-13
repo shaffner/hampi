@@ -5,6 +5,8 @@ apt-get install git build-essential libasound2-dev libudev-dev alsa-utils rsyslo
 
 git clone http://github.com/wb2osz/direwolf
 cd direwolf
-make
-make install
+mkdir build && cd build
+cmake ..
+make -j4
+sudo make install
 
