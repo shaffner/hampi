@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo apt-get install autoconf automake libtool -y
+
 git clone https://github.com/Hamlib/Hamlib.git
 cd Hamlib
 ./bootstrap

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd /home/shell/Programs
-apt-get install git build-essential libasound2-dev libudev-dev alsa-utils rsyslog logrotate libgps-dev
+sudo apt-get install git build-essential libasound2-dev libudev-dev alsa-utils rsyslog logrotate libgps-dev cmake libavahi-common-dev libavahi-client-dev -y
 
 git clone http://github.com/wb2osz/direwolf
 cd direwolf
