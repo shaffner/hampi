@@ -1,0 +1,203 @@
+#!/bin/bash
+
+# Locate GPS device
+
+RULES_FILE="/lib/udev/rules.d/99-usb.rules"
+BASE_RULE_1='SUBSYSTEM=="tty", GROUP="dialout", MODE="0660", ATTRS{idVendor}=="'
+BASE_RULE_2='", ATTRS{idProduct}=="'
+BASE_RULE_3='", ACTION=="add", SYMLINK+="tty-gps"'
+
+# Get lsusb output and filter out "Linux Foundation" lines
+usb_devices=$(lsusb | grep -v "Linux Foundation")
+
+# Check if there are any devices left
+if [[ -z "$usb_devices" ]]; then
+    echo "No USB devices found."
+    exit 1
+fi
+
+# Create an array of devices
+mapfile -t devices <<< "$usb_devices"
+
+while true; do
+    # Display the list of devices
+    echo
+    echo "Select your GPS device:"
+    for i in "${!devices[@]}"; do
+        # Extract the product name (everything after the third colon)
+        product_name=$(echo "${devices[i]}" | cut -d' ' -f7-)
+        echo "$((i+1)). $product_name"
+    done
+
+    # Prompt user for a selection
+    echo
+    read -p "Enter the number of your GPS device [99 to quit]: " choice
+
+    # Allow the user to quit the process
+    if [[ "$choice" == "99" ]]; then
+        echo
+        echo "Quitting the process."
+        exit 0
+    fi
+
+    # Validate input
+    if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#devices[@]} )); then
+        # Extract the selected device info
+        selected_device="${devices[choice-1]}"
+        vendor_id=$(echo "$selected_device" | awk '{print $6}' | cut -d':' -f1)
+        product_id=$(echo "$selected_device" | awk '{print $6}' | cut -d':' -f2)
+
+        # Check if there is a vendor and product id already in the RULES file.
+	test=$(grep "$vendor_id" $RULES_FILE | grep -q "$product_id" && echo "true")
+        if [ "$test" == "true" ]; then
+    		echo
+		echo "Product device already configured."
+	else
+		# Output Vendor ID and Product ID to rules file
+		echo $BASE_RULE_1$vendor_id$BASE_RULE_2$product_id$BASE_RULE_3 >> $RULES_FILE
+		break  # Exit loop after successful selection
+	fi
+    else
+        echo "Invalid selection. Please try again."
+    fi
+done
+
+#Locate DIGIRIG device
+
+RULES_FILE="/lib/udev/rules.d/99-usb.rules"
+BASE_RULE_1='SUBSYSTEM=="tty", GROUP="dialout", MODE="0660", ATTRS{idVendor}=="'
+BASE_RULE_2='", ATTRS{idProduct}=="'
+BASE_RULE_3='", ACTION=="add", SYMLINK+="tty-digirig"'
+
+# Get lsusb output and filter out "Linux Foundation" lines
+usb_devices=$(lsusb | grep -v "Linux Foundation")
+
+# Check if there are any devices left
+if [[ -z "$usb_devices" ]]; then
+    echo "No USB devices found."
+    exit 1
+fi
+
+# Create an array of devices
+mapfile -t devices <<< "$usb_devices"
+
+while true; do
+    # Display the list of devices
+    echo
+    echo "Select your Digirig:"
+    for i in "${!devices[@]}"; do
+        # Extract the product name 
+        product_name=$(echo "${devices[i]}" | cut -d' ' -f7-)
+        echo "$((i+1)). $product_name"
+    done
+
+    # Prompt user for a selection
+    echo
+    read -p "Enter the number of your Digirig [99 to quit]: " choice
+
+    # Allow the user to quit the process
+    if [[ "$choice" == "99" ]]; then
+        echo
+        echo "Quitting the process."
+        exit 0
+    fi
+
+    # Validate input
+    if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#devices[@]} )); then
+        # Extract the selected device info
+        selected_device="${devices[choice-1]}"
+        vendor_id=$(echo "$selected_device" | awk '{print $6}' | cut -d':' -f1)
+        product_id=$(echo "$selected_device" | awk '{print $6}' | cut -d':' -f2)
+
+        # Check if there is a vendor and product id already in the RULES file.
+	test=$(grep "$vendor_id" $RULES_FILE | grep -q "$product_id" && echo "true")
+        if [ "$test" == "true" ]; then
+    		echo
+		echo "Product device already configured."
+	else
+		# Output Vendor ID and Product ID to rules file
+		echo $BASE_RULE_1$vendor_id$BASE_RULE_2$product_id$BASE_RULE_3 >> $RULES_FILE
+		break  # Exit loop after successful selection
+	fi
+    else
+        echo "Invalid selection. Please try again."
+    fi
+done
+
+# Install NTP and GPSd
+
+INSTALL_LOG="/home/shell/install_log"
+NTP_CONF="/etc/ntpsec/ntp.conf"
+ntp_test=$(apt-get -s install ntp -y | grep "ntp is already the newest version")
+gps_test=$(apt-get -s install gpsd -y | grep "gpsd is already the newest version")
+
+logwrite () {
+echo $@
+echo $@ >> $INSTALL_LOG
+}
+
+echo "Log started:" `date` > $INSTALL_LOG
+
+if [ "$ntp_test" == "" ]; then
+	logwrite -n "Install NTP ... "
+	apt-get install ntp ntpdate -y &>> $INSTALL_LOG && logwrite "done."
+        echo 'server 127.127.28.0 minpoll 4 maxpoll 4 prefer' >> $NTP_CONF
+        echo 'fudge 127.127.28.0 time1 +0.070 refid SHM stratum 15' >> $NTP_CONF
+	systemctl start ntp &>> $INSTALL_LOG
+	sleep 10
+        ntpdate
+	logwrite "NTP service started."
+else
+	echo $ntp_test
+fi
+
+echo
+
+if [ "$gps_test" == "" ]; then
+	logwrite -n "Install GPSD and clients ... "
+	apt-get install gpsd gpsd-clients -y &>> $INSTALL_LOG && logwrite "done."
+	cp ./gpsd.default /etc/default/gpsd
+else
+	echo $gps_test
+fi
+
+
+# Build/install hamlib
+
+sudo apt-get install autoconf automake libtool -y
+
+git clone https://github.com/Hamlib/Hamlib.git
+cd Hamlib
+./bootstrap
+./configure
+make
+sudo make install
+
+
+# Build/install direwolf
+
+cd /home/shell/Programs
+sudo apt-get install git build-essential libasound2-dev libudev-dev alsa-utils rsyslog logrotate libgps-dev cmake libavahi-common-dev libavahi-client-dev -y
+
+git clone http://github.com/wb2osz/direwolf
+cd direwolf
+mkdir build && cd build
+cmake ..
+make -j4
+sudo make install
+
+# install sound card
+
+RULES_FILE="/etc/modprobe.d/alsa-base.conf"
+PNAME_STR='options snd_usb_audio index=0,1 vid=0x0d8c pid=0x0012'
+
+if grep -Fxq "$PNAME_STR" "$RULES_FILE"; then
+	echo "No changes to alsa-base.conf required."
+else
+	echo "$PNAME_STR" >> "$RULES_FILE"
+	echo "alsa-base.conf updated with:"
+	echo "$PNAME_STR"
+fi
+
+echo "############"
+echo "REBOOT NOW"

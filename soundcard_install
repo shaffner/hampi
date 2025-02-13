@@ -1,0 +1,12 @@
+#!/bin/bash
+
+RULES_FILE="/etc/modprobe.d/alsa-base.conf"
+PNAME_STR='options snd_usb_audio index=0,1 vid=0x0d8c pid=0x0012'
+
+if grep -Fxq "$PNAME_STR" "$RULES_FILE"; then
+	echo "No changes to alsa-base.conf required."
+else
+	echo "$PNAME_STR" >> "$RULES_FILE"
+	echo "alsa-base.conf updated with:"
+	echo "$PNAME_STR"
+fi
