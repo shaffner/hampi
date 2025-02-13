@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "execute the following commands"
+echo "sudo apt-get update && sudo apt-get upgrade -y"
+echo "sudo apt-get install git"
