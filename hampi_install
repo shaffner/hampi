@@ -54,7 +54,7 @@ while true; do
 		echo "Product device already configured."
 	else
 		# Output Vendor ID and Product ID to rules file
-		echo $BASE_RULE_1$vendor_id$BASE_RULE_2$product_id$BASE_RULE_3 >> $RULES_FILE
+		sudo echo $BASE_RULE_1$vendor_id$BASE_RULE_2$product_id$BASE_RULE_3 >> $RULES_FILE
 		break  # Exit loop after successful selection
 	fi
     else
@@ -116,7 +116,7 @@ while true; do
 		echo "Product device already configured."
 	else
 		# Output Vendor ID and Product ID to rules file
-		echo $BASE_RULE_1$vendor_id$BASE_RULE_2$product_id$BASE_RULE_3 >> $RULES_FILE
+		sudo echo $BASE_RULE_1$vendor_id$BASE_RULE_2$product_id$BASE_RULE_3 >> $RULES_FILE
 		break  # Exit loop after successful selection
 	fi
     else
@@ -140,12 +140,12 @@ echo "Log started:" `date` > $INSTALL_LOG
 
 if [ "$ntp_test" == "" ]; then
 	logwrite -n "Install NTP ... "
-	apt-get install ntp ntpdate -y &>> $INSTALL_LOG && logwrite "done."
+	sudo apt-get install ntp ntpdate -y &>> $INSTALL_LOG && logwrite "done."
         echo 'server 127.127.28.0 minpoll 4 maxpoll 4 prefer' >> $NTP_CONF
         echo 'fudge 127.127.28.0 time1 +0.070 refid SHM stratum 15' >> $NTP_CONF
-	systemctl start ntp &>> $INSTALL_LOG
+	sudo systemctl start ntp &>> $INSTALL_LOG
 	sleep 10
-        ntpdate
+        sudo ntpdate
 	logwrite "NTP service started."
 else
 	echo $ntp_test
@@ -155,8 +155,8 @@ echo
 
 if [ "$gps_test" == "" ]; then
 	logwrite -n "Install GPSD and clients ... "
-	apt-get install gpsd gpsd-clients -y &>> $INSTALL_LOG && logwrite "done."
-	cp ./gpsd.default /etc/default/gpsd
+	sudo apt-get install gpsd gpsd-clients -y &>> $INSTALL_LOG && logwrite "done."
+	sudo cp ./gpsd.default /etc/default/gpsd
 else
 	echo $gps_test
 fi
