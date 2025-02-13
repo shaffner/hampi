@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir $HOME/Programs
+
 # Get a list of all files in the current directory, excluding those with a dot (".")
 files=$(ls -p | grep -v / | grep -v '\.')
 
@@ -10,3 +12,6 @@ do
     echo "Changed permissions to execute for $file"
 done
 
+echo
+echo "Plug in the Digirig and GPS USB devices now."
+echo "Then run the command './hampi_install'"

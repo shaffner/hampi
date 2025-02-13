@@ -13,6 +13,7 @@ sudo ./GPSD_install
 
 sudo apt-get install autoconf automake libtool -y
 
+cd $HOME/Programs
 git clone https://github.com/Hamlib/Hamlib.git
 cd Hamlib
 ./bootstrap
@@ -23,7 +24,7 @@ sudo make install
 
 # Build/install direwolf
 
-cd /home/shell/Programs
+cd $HOME/Programs
 sudo apt-get install git build-essential libasound2-dev libudev-dev alsa-utils rsyslog logrotate libgps-dev cmake libavahi-common-dev libavahi-client-dev -y
 
 git clone http://github.com/wb2osz/direwolf
@@ -34,17 +35,7 @@ make -j4
 sudo make install
 
 # install sound card
-
-RULES_FILE="/etc/modprobe.d/alsa-base.conf"
-PNAME_STR='options snd_usb_audio index=0,1 vid=0x0d8c pid=0x0012'
-
-if grep -Fxq "$PNAME_STR" "$RULES_FILE"; then
-	echo "No changes to alsa-base.conf required."
-else
-	echo "$PNAME_STR" >> "$RULES_FILE"
-	echo "alsa-base.conf updated with:"
-	echo "$PNAME_STR"
-fi
+sudo ./soundcard_install
 
 echo "############"
 echo "REBOOT NOW"
