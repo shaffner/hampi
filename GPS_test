@@ -1,0 +1,3 @@
+#!/bin/bash
+
+stty -F /dev/tty-gps speed 9600 && cat < /dev/tty-gps

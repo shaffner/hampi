@@ -1,0 +1,62 @@
+#!/bin/bash
+
+RULES_FILE="/lib/udev/rules.d/99-usb.rules"
+BASE_RULE_1='SUBSYSTEM=="tty", GROUP="dialout", MODE="0660", ATTRS{idVendor}=="'
+BASE_RULE_2='", ATTRS{idProduct}=="'
+BASE_RULE_3='", ACTION=="add", SYMLINK+="tty-digirig"'
+
+# Get lsusb output and filter out "Linux Foundation" lines
+usb_devices=$(lsusb | grep -v "Linux Foundation")
+
+# Check if there are any devices left
+if [[ -z "$usb_devices" ]]; then
+    echo "No USB devices found."
+    exit 1
+fi
+
+# Create an array of devices
+mapfile -t devices <<< "$usb_devices"
+
+while true; do
+    # Display the list of devices
+    echo
+    echo "Select your Digirig:"
+    for i in "${!devices[@]}"; do
+        # Extract the product name 
+        product_name=$(echo "${devices[i]}" | cut -d' ' -f7-)
+        echo "$((i+1)). $product_name"
+    done
+
+    # Prompt user for a selection
+    echo
+    read -p "Enter the number of your Digirig [99 to quit]: " choice
+
+    # Allow the user to quit the process
+    if [[ "$choice" == "99" ]]; then
+        echo
+        echo "Quitting the process."
+        exit 0
+    fi
+
+    # Validate input
+    if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#devices[@]} )); then
+        # Extract the selected device info
+        selected_device="${devices[choice-1]}"
+        vendor_id=$(echo "$selected_device" | awk '{print $6}' | cut -d':' -f1)
+        product_id=$(echo "$selected_device" | awk '{print $6}' | cut -d':' -f2)
+
+        # Check if there is a vendor and product id already in the RULES file.
+	test=$(grep "$vendor_id" $RULES_FILE | grep -q "$product_id" && echo "true")
+        if [ "$test" == "true" ]; then
+    		echo
+		echo "Product device already configured."
+	else
+		# Output Vendor ID and Product ID to rules file
+		echo $BASE_RULE_1$vendor_id$BASE_RULE_2$product_id$BASE_RULE_3 >> $RULES_FILE
+		break  # Exit loop after successful selection
+	fi
+    else
+        echo "Invalid selection. Please try again."
+    fi
+done
+
