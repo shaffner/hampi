@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Get a list of all files in the current directory, excluding those with a dot (".")
+files=$(ls -p | grep -v / | grep -v '\.')
+
+# Iterate through each file and change permissions to executable
+for file in $files
+do
+    chmod +x "$file"
+    echo "Changed permissions to execute for $file"
+done
+
