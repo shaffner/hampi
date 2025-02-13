@@ -14,7 +14,7 @@ echo "Log started:" `date` > $INSTALL_LOG
 
 if [ "$ntp_test" == "" ]; then
 	logwrite -n "Install NTP ... "
-	apt-get install ntp -y &>> $INSTALL_LOG && logwrite "done."
+	apt-get install ntp ntpdate -y &>> $INSTALL_LOG && logwrite "done."
         echo 'server 127.127.28.0 minpoll 4 maxpoll 4 prefer' >> $NTP_CONF
         echo 'fudge 127.127.28.0 time1 +0.070 refid SHM stratum 15' >> $NTP_CONF
 	systemctl start ntp &>> $INSTALL_LOG
