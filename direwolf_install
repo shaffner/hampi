@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd /home/shell/Programs
+apt-get install git build-essential libasound2-dev libudev-dev alsa-utils rsyslog logrotate libgps-dev
+
+git clone http://github.com/wb2osz/direwolf
+cd direwolf
+make
+make install
+

@@ -1,0 +1,38 @@
+#!/bin/bash
+
+INSTALL_LOG="/home/shell/install_log"
+NTP_CONF="/etc/ntpsec/ntp.conf"
+ntp_test=$(apt-get -s install ntp -y | grep "ntp is already the newest version")
+gps_test=$(apt-get -s install gpsd -y | grep "gpsd is already the newest version")
+
+logwrite () {
+echo $@
+echo $@ >> $INSTALL_LOG
+}
+
+echo "Log started:" `date` > $INSTALL_LOG
+
+if [ "$ntp_test" == "" ]; then
+	logwrite -n "Install NTP ... "
+	apt-get install ntp -y &>> $INSTALL_LOG && logwrite "done."
+        echo 'server 127.127.28.0 minpoll 4 maxpoll 4 prefer' >> $NTP_CONF
+        echo 'fudge 127.127.28.0 time1 +0.070 refid SHM stratum 15' >> $NTP_CONF
+	systemctl start ntp &>> $INSTALL_LOG
+	sleep 10
+        ntpdate
+	logwrite "NTP service started."
+else
+	echo $ntp_test
+fi
+
+echo
+
+if [ "$gps_test" == "" ]; then
+	logwrite -n "Install GPSD and clients ... "
+	apt-get install gpsd gpsd-clients -y &>> $INSTALL_LOG && logwrite "done."
+	cp ./gpsd.default /etc/default/gpsd
+else
+	echo $gps_test
+fi
+
+
