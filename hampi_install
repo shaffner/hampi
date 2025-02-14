@@ -1,5 +1,7 @@
 #!/bin/bash
 
+thisDir=`pwd`
+
 # Locate GPS device
 sudo ./GPS_locator
 
@@ -35,7 +37,39 @@ make -j4
 sudo make install
 
 # install sound card
+cd $thisDir
 sudo ./soundcard_install
+
+# Move direwolf configurations files
+# Check to see if local direwolf directory exists
+if [ ! -d "$HOME/.config/direwolf" ]; then
+  mkdir $HOME/.config/direwolf && echo "$HOME/.config/direwolf created."
+fi
+
+cp direwolf.footer $HOME/.config/direwolf
+cp direwolf.tnc.header $HOME/.config/direwolf
+cp direwolf.winlink.conf $HOME/.config/direwolf
+
+# Move scripts to local bin directory
+# Check to see if local bin directory exists, if not create it.
+if [ ! -d "$HOME/.local/bin" ]; then
+  mkdir $HOME/.local/bin && echo "$HOME/.local/bin created."
+fi
+
+cp Digirig_locator $HOME/.local/bin
+cp direwolf_install $HOME/.local/bin
+cp GPSD_install $HOME/.local/bin
+cp GPS_locator $HOME/.local/bin
+cp GPS_test $HOME/.local/bin
+cp hamlib_install $HOME/.local/bin
+cp hampi_install $HOME/.local/bin
+cp soundcard_install $HOME/.local/bin
+
+chmod +x dw_run.sh dw-start.sh
+cp dw_run.sh $HOME/.local/bin
+cp dw-start.sh $HOME/.local/bin
 
 echo "############"
 echo "REBOOT NOW"
+echo
+echo "After rebooting, you can remove the hampi directory."
