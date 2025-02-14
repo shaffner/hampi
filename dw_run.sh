@@ -1,7 +1,7 @@
 #!/bin/bash
 
-thisDir="$HOME/Scripts/hampi"
-OUTPUT_CONF=$HOME/direwolf.tmp.conf
+CONF_DIR=$HOME/.config/direwolf
+OUTPUT_CONF=$CONF_DIR/direwolf.tmp.conf
 DIRECMD="direwolf -p -t 0 -c $OUTPUT_CONF"
 search_string="[USB Audio Device]"
 card_number=0
@@ -19,12 +19,12 @@ done < <(arecord -l)
 if [ "$1" = 'winlink' ]; then
 	TYPE="Winlink"
 	echo "ADEVICE plughw:$card_number,0" > $OUTPUT_CONF
-	cat $thisDir/direwolf.footer >> $OUTPUT_CONF
+	cat $CONF_DIR/direwolf.footer >> $OUTPUT_CONF
 else
 	TYPE="TNC"
-	cp $thisDir/direwolf.tnc.header $OUTPUT_CONF
+	cp $CONF_DIR/direwolf.tnc.header $OUTPUT_CONF
 	echo "ADEVICE plughw:${card_number},0" >> $OUTPUT_CONF
-	cat $thisDir/direwolf.footer >> $OUTPUT_CONF
+	cat $CONF_DIR/direwolf.footer >> $OUTPUT_CONF
 fi
 
 echo "Starting Direwolf for $TYPE operation"
